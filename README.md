@@ -6,6 +6,6 @@
 - Vue 3 框架練習動手做Todo list.
 - 使用組合式API(composition API).
 
-# 執行步驟
+ 執行步驟
 - npm install
 - npm run dev
