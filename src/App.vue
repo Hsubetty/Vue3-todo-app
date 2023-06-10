@@ -24,8 +24,8 @@ const addTodo = () => {
   });
 
   const todoData = {
-      content: inputContent.value,
-      category: inputCategory.value,
+    content: inputContent.value,
+    category: inputCategory.value,
   };
 
   axios
@@ -41,8 +41,34 @@ const addTodo = () => {
   inputCategory.value = null;
 };
 
-const removeTodo = (todo) => {
-  todos.value = todos.value.filter((t) => t != todo);
+const updateTodo = (updatedData) => {
+  axios
+    .put(`http://127.0.0.1:3000/todos/${updatedData.id}`, updatedData)
+    .then((response) => {
+      console.log("Todo更新成功", response.data);
+    })
+    .catch((error) => {
+      console.error("更新Todo時發生錯誤", error);
+    });
+};
+
+const setDoneStatus = (isDone, todo) => { 
+  todo.done = isDone
+  updateTodo(todo)
+} 
+
+const removeTodo = (deleteData) => {
+  if (confirm('是否刪除？')) {
+    axios
+    .delete(`http://127.0.0.1:3000/todos/${deleteData.id}`, deleteData)
+    .then((response) => {
+      console.log("Todo已刪除", response.data);
+      todos.value = todos.value.filter((t) => t != deleteData);
+    })
+    .catch((error) => {
+      console.error("刪除Todo時發生錯誤", error);
+    });
+  }
 };
 
 watch(
@@ -58,10 +84,10 @@ watch(name, (newVal) => {
 });
 onMounted(() => {
   axios.get("http://127.0.0.1:3000/todos/", { Accept: "*/*" }).then((res) => {
-    console.log("res", res);
+    todos.value = res.data.todo_list;
+    console.log(res.data.todo_list)
   });
   name.value = localStorage.getItem("name") || "";
-  todos.value = JSON.parse(localStorage.getItem("todos")) || [];
 });
 </script>
 
@@ -116,13 +142,14 @@ onMounted(() => {
           :class="`todo-item ${todo.done && 'done'}`"
         >
           <label>
-            <input type="checkbox" v-model="todo.done" />
+            <input type="checkbox" v-model="todo.done"  @change="setDoneStatus($event.target.checked, todo)"/>
             <span :class="`bubble ${todo.category}`"></span>
           </label>
           <div class="todo-content">
             <input type="text" v-model="todo.content" />
           </div>
           <div class="actions">
+            <button class="edit" @click="updateTodo(todo)">Update</button>
             <button class="delete" @click="removeTodo(todo)">Delete</button>
           </div>
         </div>
